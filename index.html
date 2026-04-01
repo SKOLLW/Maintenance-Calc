@@ -310,14 +310,6 @@ function setKpi(id, value, unit, cls, statusGood, statusWarn, statusBad) {
   card.className = 'kpi-card ' + (cls === 'good' ? 'active' : cls === 'warn' ? 'warn-card' : 'danger-card');
 }
 
-  function setKpi(id, value, unit, cls, statusGood, statusWarn, statusBad) {
-  document.getElementById('v-'+id).textContent = value;
-  document.getElementById('v-'+id).className = 'kpi-value ' + cls;
-  document.getElementById('dot-'+id).className = 'status-dot ' + cls;
-  document.getElementById('lbl-'+id).textContent = labelFor(cls, statusGood, statusWarn, statusBad);
-  var card = document.getElementById('card-'+id);
-  card.className = 'kpi-card ' + (cls === 'good' ? 'active' : cls === 'warn' ? 'warn-card' : 'danger-card');
-}
 
 function buildInterpretation(mtbf, mttr, disp, oee, costo) {
   var interpretacionMTBF = '';
@@ -428,8 +420,9 @@ document.getElementById('btn-calc').onclick = function() {
   if (costo > 0) d += 'Costo directo de paros en el período: <span class="danger-text">$' + Math.round(costo).toLocaleString() + ' USD</span>.';
 
   document.getElementById('diag').innerHTML = d;
+  document.getElementById('interp').innerHTML = buildInterpretation(_mtbf, _mttr, disp, oee, costo);
 };
-document.getElementById('interp').innerHTML = buildInterpretation(_mtbf, _mttr, disp, oee, costo);
+
   
 document.getElementById('btn-conf').onclick = calcConf;
 
