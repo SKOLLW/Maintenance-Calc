@@ -171,6 +171,15 @@
   .kpi-card:nth-child(4) { animation-delay: 0.20s; }
   .kpi-card:nth-child(5) { animation-delay: 0.25s; }
   .kpi-card:nth-child(6) { animation-delay: 0.30s; }
+
+  .score-reading {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+}
 </style>
 </head>
 <body>
@@ -263,12 +272,9 @@
       <span class="status-dot" id="dot-score"></span>
       <span class="status-label" id="lbl-score">—</span>
     </div>
-  </div>
-</div>
-
-<div class="diag-section">
-  <div class="diag-text" id="score-desc">
-    Calcula los KPIs para ver la evaluación del activo.
+    <div class="score-reading" id="score-desc">
+      Calcula los KPIs para ver la evaluación del activo.
+    </div>
   </div>
 </div>
   
@@ -448,7 +454,7 @@ function buildScore(mtbf, mttr, disp, oee) {
   var clase = '';
   var lectura = '';
 
-  if (score >= 80) {
+  if (score >= 85) {
     estado = 'Óptimo';
     clase = 'good';
     lectura = 'El activo presenta un desempeño sólido y condiciones operativas saludables.';
