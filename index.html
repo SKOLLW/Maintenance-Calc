@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MaintCalc — Calculadora de KPIs de Mantenimiento</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f11;
+    --surface: #16181c;
+    --surface2: #1e2126;
+    --border: #2a2d34;
+    --accent: #00e5a0;
+    --accent2: #0066ff;
+    --warn: #f5a623;
+    --danger: #ff4d4d;
+    --text: #f0f2f5;
+    --muted: #6b7280;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+    --display: 'Syne', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px;
+  }
+  .logo { font-family: var(--display); font-weight: 800; font-size: 18px; letter-spacing: -0.5px; }
+  .logo span { color: var(--accent); }
+  .logo-sub { font-size: 11px; color: var(--muted); font-family: var(--mono); margin-top: 1px; }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .header-badge {
+    font-family: var(--mono); font-size: 11px; color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 99px;
+    padding: 3px 12px; opacity: 0.8;
+  }
+  .uses-badge {
+    font-family: var(--mono); font-size: 11px;
+    border: 1px solid var(--warn); color: var(--warn);
+    border-radius: 99px; padding: 3px 12px;
+    transition: all 0.3s;
+  }
+
+  /* LAYOUT */
+  main { max-width: 960px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+  .hero { margin-bottom: 2.5rem; }
+  .hero h1 { font-family: var(--display); font-size: clamp(28px, 4vw, 42px); font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
+  .hero h1 em { color: var(--accent); font-style: normal; }
+  .hero p { color: var(--muted); font-size: 15px; margin-top: 10px; max-width: 520px; line-height: 1.6; }
+
+  /* PRO BANNER */
+  .pro-banner {
+    background: var(--surface); border: 1px solid var(--accent);
+    border-radius: 12px; padding: 18px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 14px; margin-bottom: 2rem;
+  }
+  .pro-banner h3 { font-family: var(--display); font-size: 15px; font-weight: 700; color: var(--accent); margin-bottom: 3px; }
+  .pro-banner p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .pro-btn {
+    background: var(--accent); color: #000;
+    border: none; border-radius: 8px;
+    font-family: var(--display); font-weight: 700; font-size: 13px;
+    padding: 10px 22px; cursor: pointer; white-space: nowrap;
+    transition: opacity 0.2s, transform 0.15s;
+    text-decoration: none; display: inline-block;
+  }
+  .pro-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+  /* PAYWALL */
+  .paywall {
+    background: var(--surface); border: 1px solid var(--danger);
+    border-radius: 12px; padding: 36px 24px;
+    text-align: center; margin-bottom: 2rem;
+  }
+  .paywall h3 { font-family: var(--display); font-size: 20px; font-weight: 700; margin-bottom: 10px; color: var(--text); }
+  .paywall p { color: var(--muted); font-size: 14px; margin-bottom: 22px; line-height: 1.7; max-width: 420px; margin-left: auto; margin-right: auto; }
+
+  /* INPUTS */
+  .section-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    color: var(--muted); text-transform: uppercase; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .input-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 2rem; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 11px; color: var(--muted); font-family: var(--mono); letter-spacing: 0.04em; }
+  .field input {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 15px; font-family: var(--mono); color: var(--text);
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+  .field input::-webkit-outer-spin-button,
+  .field input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .field input:focus { outline: none; border-color: var(--accent); }
+
+  /* CALC BUTTON */
+  .calc-btn {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--accent); color: #000;
+    border: none; border-radius: 10px;
+    font-family: var(--display); font-weight: 700; font-size: 15px;
+    padding: 13px 28px; cursor: pointer;
+    transition: transform 0.15s, opacity 0.15s;
+    margin-bottom: 2.5rem;
+  }
+  .calc-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .calc-btn:active { transform: scale(0.97); }
+  .calc-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+  .calc-btn svg { width: 18px; height: 18px; }
+
+  /* KPI GRID */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 2rem; }
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px;
+    transition: border-color 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .kpi-card.active { border-color: var(--accent); }
+  .kpi-card.warn-card { border-color: var(--warn); }
+  .kpi-card.danger-card { border-color: var(--danger); }
+  .kpi-name { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .kpi-value { font-family: var(--display); font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 4px; color: var(--text); }
+  .kpi-value.good { color: var(--accent); }
+  .kpi-value.warn { color: var(--warn); }
+  .kpi-value.bad { color: var(--danger); }
+  .kpi-unit { font-size: 11px; color: var(--muted); margin-bottom: 10px; font-family: var(--mono); }
+  .kpi-formula { font-family: var(--mono); font-size: 10px; color: var(--border); background: var(--surface2); border-radius: 4px; padding: 4px 8px; display: inline-block; transition: color 0.3s; }
+  .kpi-card.active .kpi-formula,
+  .kpi-card.warn-card .kpi-formula,
+  .kpi-card.danger-card .kpi-formula { color: var(--muted); }
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--border); display: inline-block;
+    margin-right: 6px; transition: background 0.3s;
+  }
+  .status-dot.good { background: var(--accent); }
+  .status-dot.warn { background: var(--warn); }
+  .status-dot.bad { background: var(--danger); }
+  .status-label { font-size: 11px; font-family: var(--mono); color: var(--muted); }
+
+  /* CONFIABILIDAD */
+  .conf-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 2rem; }
+  .conf-inputs { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+  .conf-inputs label { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+  .conf-inputs input {
+    width: 80px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 7px 10px; font-size: 13px;
+    font-family: var(--mono); color: var(--text);
+    -moz-appearance: textfield;
+  }
+  .conf-inputs input::-webkit-outer-spin-button,
+  .conf-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .conf-inputs input:focus { outline: none; border-color: var(--accent); }
+  .conf-results { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .conf-chip {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 16px; min-width: 100px;
+  }
+  .conf-chip-t { font-size: 10px; color: var(--muted); font-family: var(--mono); margin-bottom: 4px; }
+  .conf-chip-v { font-family: var(--display); font-size: 20px; font-weight: 700; color: var(--accent); }
+
+  /* DIAGNÓSTICO */
+  .diag-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 2rem; }
+  .diag-text { font-size: 14px; color: var(--muted); line-height: 1.8; }
+  .diag-text b { color: var(--text); font-weight: 500; }
+  .diag-text p { margin-bottom: 6px; }
+  .diag-text .highlight { color: var(--accent); font-weight: 500; }
+  .diag-text .warn-text { color: var(--warn); font-weight: 500; }
+  .diag-text .danger-text { color: var(--danger); font-weight: 500; }
+
+  /* BOTTOM ACTIONS */
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .action-btn {
+    padding: 10px 20px; border-radius: 8px; font-size: 13px;
+    font-family: var(--mono); cursor: pointer; transition: all 0.2s;
+    border: 1px solid var(--border); background: transparent; color: var(--muted);
+  }
+  .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* FOOTER */
+  footer { border-top: 1px solid var(--border); text-align: center; padding: 1.5rem; font-size: 12px; color: var(--muted); font-family: var(--mono); }
+
+  /* SCORE */
+  .score-reading {
+    margin-top: 14px; padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-size: 13px; line-height: 1.6; color: var(--muted);
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .kpi-card { animation: fadeUp 0.4s ease both; }
+  .kpi-card:nth-child(1) { animation-delay: 0.05s; }
+  .kpi-card:nth-child(2) { animation-delay: 0.10s; }
+  .kpi-card:nth-child(3) { animation-delay: 0.15s; }
+  .kpi-card:nth-child(4) { animation-delay: 0.20s; }
+  .kpi-card:nth-child(5) { animation-delay: 0.25s; }
+  .kpi-card:nth-child(6) { animation-delay: 0.30s; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Maint<span>Calc</span></div>
+    <div class="logo-sub">KPI Calculator for Industrial Maintenance</div>
+  </div>
+  <div class="header-right">
+    <span class="uses-badge" id="uses-badge">3 usos gratis restantes</span>
+    <div class="header-badge">v1.0</div>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <h1>Calcula tus KPIs de<br><em>mantenimiento industrial</em></h1>
+    <p>MTBF, MTTR, Disponibilidad, OEE y Confiabilidad en segundos. Ingresa los datos de tu equipo y obtén el diagnóstico al instante.</p>
+  </div>
+
+  <div class="pro-banner">
+    <div>
+      <h3>MaintCalc Pro — $9 USD/mes</h3>
+      <p>Cálculos ilimitados · Exportar PDF · Historial de equipos · Soporte prioritario</p>
+    </div>
+    <a class="pro-btn" href="https://maintcalc.lemonsqueezy.com/checkout/buy/31d072d8-8724-4b12-9a34-e0ff298e1ccf" target="_blank">Actualizar a Pro →</a>
+  </div>
+
+  <div class="section-label">Datos del equipo</div>
+  <div class="input-grid">
+    <div class="field"><label>Horas totales del período</label><input id="i-ht" type="number" value="720" placeholder="720"></div>
+    <div class="field"><label>Número de fallas</label><input id="i-nf" type="number" value="2" placeholder="2"></div>
+    <div class="field"><label>Horas totales de paro</label><input id="i-hp" type="number" value="10" placeholder="10"></div>
+    <div class="field"><label>Horas totales de reparación</label><input id="i-hr" type="number" value="10" placeholder="10"></div>
+    <div class="field"><label>Velocidad real (uds/hr)</label><input id="i-vr" type="number" value="85" placeholder="85"></div>
+    <div class="field"><label>Velocidad ideal (uds/hr)</label><input id="i-vi" type="number" value="100" placeholder="100"></div>
+    <div class="field"><label>Costo hora-máquina (USD)</label><input id="i-ch" type="number" value="50" placeholder="50"></div>
+    <div class="field"><label>Unidades defectuosas (%)</label><input id="i-pd" type="number" value="2" placeholder="2"></div>
+  </div>
+
+  <button class="calc-btn" id="btn-calc">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 7H6a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-3"/><path d="M9 15h3l8.5-8.5a1.5 1.5 0 00-3-3L9 12v3"/></svg>
+    Calcular KPIs
+  </button>
+
+  <div class="section-label">Resultados</div>
+  <div class="kpi-grid">
+    <div class="kpi-card" id="card-mtbf">
+      <div class="kpi-name">MTBF</div>
+      <div class="kpi-value" id="v-mtbf">—</div>
+      <div class="kpi-unit">horas entre fallas</div>
+      <div><span class="status-dot" id="dot-mtbf"></span><span class="status-label" id="lbl-mtbf">—</span></div>
+      <div style="margin-top:10px;"><span class="kpi-formula">Ht / Nf</span></div>
+    </div>
+    <div class="kpi-card" id="card-mttr">
+      <div class="kpi-name">MTTR</div>
+      <div class="kpi-value" id="v-mttr">—</div>
+      <div class="kpi-unit">horas por reparación</div>
+      <div><span class="status-dot" id="dot-mttr"></span><span class="status-label" id="lbl-mttr">—</span></div>
+      <div style="margin-top:10px;"><span class="kpi-formula">Hr / Nf</span></div>
+    </div>
+    <div class="kpi-card" id="card-disp">
+      <div class="kpi-name">Disponibilidad</div>
+      <div class="kpi-value" id="v-disp">—</div>
+      <div class="kpi-unit">% tiempo operativo</div>
+      <div><span class="status-dot" id="dot-disp"></span><span class="status-label" id="lbl-disp">—</span></div>
+      <div style="margin-top:10px;"><span class="kpi-formula">(Ht−Hp) / Ht × 100</span></div>
+    </div>
+    <div class="kpi-card" id="card-disp2">
+      <div class="kpi-name">Disponibilidad (MTBF)</div>
+      <div class="kpi-value" id="v-disp2">—</div>
+      <div class="kpi-unit">verificación por MTBF</div>
+      <div><span class="status-dot" id="dot-disp2"></span><span class="status-label" id="lbl-disp2">—</span></div>
+      <div style="margin-top:10px;"><span class="kpi-formula">MTBF / (MTBF+MTTR)</span></div>
+    </div>
+    <div class="kpi-card" id="card-oee">
+      <div class="kpi-name">OEE</div>
+      <div class="kpi-value" id="v-oee">—</div>
+      <div class="kpi-unit">eficiencia global del equipo</div>
+      <div><span class="status-dot" id="dot-oee"></span><span class="status-label" id="lbl-oee">—</span></div>
+      <div style="margin-top:10px;"><span class="kpi-formula">Disp × (Vr/Vi) × (1−Pd)</span></div>
+    </div>
+    <div class="kpi-card" id="card-costo">
+      <div class="kpi-name">Costo de paros</div>
+      <div class="kpi-value bad" id="v-costo">—</div>
+      <div class="kpi-unit">USD en el período</div>
+      <div><span class="status-dot bad"></span><span class="status-label">Pérdida directa</span></div>
+      <div style="margin-top:10px;"><span class="kpi-formula">Hp × Costo/hr</span></div>
+    </div>
+  </div>
+
+  <div class="section-label">Score global</div>
+  <div class="kpi-grid">
+    <div class="kpi-card" id="card-score">
+      <div class="kpi-name">Score global</div>
+      <div class="kpi-value" id="v-score">—</div>
+      <div class="kpi-unit">evaluación del activo</div>
+      <div><span class="status-dot" id="dot-score"></span><span class="status-label" id="lbl-score">—</span></div>
+      <div class="score-reading" id="score-desc">Calcula los KPIs para ver la evaluación del activo.</div>
+    </div>
+  </div>
+
+  <div class="section-label">Confiabilidad R(t)</div>
+  <div class="conf-section">
+    <div class="diag-text">La confiabilidad depende del horizonte de tiempo. Fórmula: <b>R(t) = e<sup>−t/MTBF</sup></b>. Ingresa los valores de t:</div>
+    <div class="conf-inputs">
+      <label>t1 (hr)</label><input id="t1" type="number" value="8">
+      <label>t2 (hr)</label><input id="t2" type="number" value="24">
+      <label>t3 (hr)</label><input id="t3" type="number" value="168">
+    </div>
+    <div class="conf-results" id="conf-results">
+      <div class="diag-text" style="font-size:12px;">Calcula los KPIs primero.</div>
+    </div>
+  </div>
+
+  <div class="section-label">Diagnóstico automático</div>
+  <div class="diag-section">
+    <div class="diag-text" id="diag">Ingresa los datos del equipo y presiona <b>Calcular KPIs</b> para ver el diagnóstico.</div>
+  </div>
+
+  <div class="section-label">Interpretación experta</div>
+  <div class="diag-section">
+    <div class="diag-text" id="interp">Calcula los KPIs para ver la interpretación técnica de cada indicador.</div>
+  </div>
+
+  <div class="section-label">Recomendaciones</div>
+  <div class="diag-section">
+    <div class="diag-text" id="reco-box">Calcula los KPIs para ver recomendaciones automáticas.</div>
+  </div>
+
+  <div class="actions">
+    <button class="action-btn" onclick="window.print()">Imprimir reporte</button>
+    <button class="action-btn" id="btn-copy">Copiar resultados</button>
+  </div>
+</main>
+
+<footer>
+  MaintCalc · Calculadora de KPIs de Mantenimiento Industrial · v1.0
+</footer>
+
+<script>
+var _mtbf = 0, _mttr = 0;
+var LEMON_URL = 'https://maintcalc.lemonsqueezy.com/checkout/buy/31d072d8-8724-4b12-9a34-e0ff298e1ccf';
+var MAX_FREE = 3;
+
+function getUses() {
+  try { return parseInt(localStorage.getItem('mc_uses') || '0'); } catch(e) { return 0; }
+}
+function setUses(n) {
+  try { localStorage.setItem('mc_uses', String(n)); } catch(e) {}
+}
+
+function updateBadge() {
+  var used = getUses();
+  var left = Math.max(0, MAX_FREE - used);
+  var badge = document.getElementById('uses-badge');
+  if (left > 0) {
+    badge.textContent = left + ' uso' + (left === 1 ? '' : 's') + ' gratis restante' + (left === 1 ? '' : 's');
+    badge.style.borderColor = left === 1 ? 'var(--danger)' : 'var(--warn)';
+    badge.style.color = left === 1 ? 'var(--danger)' : 'var(--warn)';
+  } else {
+    badge.textContent = 'Límite alcanzado · Actualiza a Pro';
+    badge.style.borderColor = 'var(--danger)';
+    badge.style.color = 'var(--danger)';
+  }
+}
+
+function showPaywall() {
+  var existing = document.getElementById('paywall-block');
+  if (existing) return;
+  var paywall = document.createElement('div');
+  paywall.className = 'paywall';
+  paywall.id = 'paywall-block';
+  paywall.innerHTML =
+    '<h3>Alcanzaste el límite gratuito</h3>' +
+    '<p>Has usado tus 3 cálculos gratuitos.<br>Actualiza a <b>MaintCalc Pro</b> por solo <b>$9 USD/mes</b> para cálculos ilimitados, exportar PDF e historial de equipos.</p>' +
+    '<a class="pro-btn" href="' + LEMON_URL + '" target="_blank">Obtener MaintCalc Pro →</a>';
+  var btn = document.getElementById('btn-calc');
+  btn.parentNode.insertBefore(paywall, btn);
+  btn.disabled = true;
+}
+
+updateBadge();
+if (getUses() >= MAX_FREE) {
+  window.addEventListener('DOMContentLoaded', showPaywall);
+}
+
+function g(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+function classify(val, good, warn) {
+  return val >= good ? 'good' : val >= warn ? 'warn' : 'bad';
+}
+
+function labelFor(cls, lg, lw, lb) {
+  return cls === 'good' ? lg : cls === 'warn' ? lw : lb;
+}
+
+function setKpi(id, value, cls, statusGood, statusWarn, statusBad) {
+  document.getElementById('v-' + id).textContent = value;
+  document.getElementById('v-' + id).className = 'kpi-value ' + cls;
+  document.getElementById('dot-' + id).className = 'status-dot ' + cls;
+  document.getElementById('lbl-' + id).textContent = labelFor(cls, statusGood, statusWarn, statusBad);
+  var card = document.getElementById('card-' + id);
+  card.className = 'kpi-card ' + (cls === 'good' ? 'active' : cls === 'warn' ? 'warn-card' : 'danger-card');
+}
+
+function calcConf() {
+  if (_mtbf <= 0) return;
+  var ts = [g('t1'), g('t2'), g('t3')];
+  var html = '';
+  ts.forEach(function(t) {
+    var r = Math.exp(-t / _mtbf) * 100;
+    html += '<div class="conf-chip"><div class="conf-chip-t">t = ' + t + ' h</div><div class="conf-chip-v">' + r.toFixed(1) + '%</div></div>';
+  });
+  document.getElementById('conf-results').innerHTML = html;
+}
+
+function buildInterpretation(mtbf, mttr, disp, oee, costo) {
+  var iMTBF, iMTTR, iDisp, iOEE, iCosto;
+
+  if (mtbf < 100) iMTBF = 'Frecuencia de fallas alta. Se recomienda análisis de causa raíz y revisión del plan de mantenimiento preventivo.';
+  else if (mtbf < 300) iMTBF = 'Frecuencia de fallas moderada. Existe oportunidad de mejorar la confiabilidad del activo.';
+  else iMTBF = 'Buen desempeño en confiabilidad. El equipo presenta intervalos adecuados entre fallas.';
+
+  if (mttr > 8) iMTTR = 'Tiempo de reparación alto. Conviene revisar disponibilidad de repuestos, tiempos de respuesta y estandarización de intervenciones.';
+  else if (mttr > 4) iMTTR = 'Tiempo de reparación moderado. Hay oportunidad de optimizar la mantenibilidad del activo.';
+  else iMTTR = 'Buen tiempo de reparación. La respuesta ante fallas es eficiente.';
+
+  if (disp < 90) iDisp = 'Disponibilidad baja. El activo está perdiendo tiempo operativo de forma importante.';
+  else if (disp < 97) iDisp = 'Disponibilidad aceptable, pero con margen de mejora para reducir pérdidas operativas.';
+  else iDisp = 'Alta disponibilidad. El activo mantiene un buen nivel de servicio operativo.';
+
+  if (oee < 60) iOEE = 'OEE bajo. Existen pérdidas relevantes en disponibilidad, rendimiento o calidad.';
+  else if (oee < 85) iOEE = 'OEE en rango medio. Hay oportunidades claras de mejora operacional.';
+  else iOEE = 'OEE de clase mundial. El desempeño global del equipo es sobresaliente.';
+
+  if (costo <= 0) iCosto = 'No se registran pérdidas directas por paros en el período analizado.';
+  else if (costo < 500) iCosto = 'El costo directo de paros es bajo, aunque sigue siendo importante monitorearlo.';
+  else if (costo < 2000) iCosto = 'El costo de paros ya representa un impacto económico relevante.';
+  else iCosto = 'El costo de paros es alto y justifica acciones correctivas y preventivas prioritarias.';
+
+  var t1 = g('t1'), t2 = g('t2'), t3 = g('t3');
+  var r1 = mtbf > 0 ? Math.exp(-t1/mtbf)*100 : 0;
+  var r2 = mtbf > 0 ? Math.exp(-t2/mtbf)*100 : 0;
+  var r3 = mtbf > 0 ? Math.exp(-t3/mtbf)*100 : 0;
+
+  function iConf(t, r) {
+    if (r >= 95) return 'Para un horizonte de ' + t + ' h, la confiabilidad es muy alta (' + r.toFixed(1) + '%). Excelente probabilidad de operar sin falla.';
+    else if (r >= 85) return 'Para un horizonte de ' + t + ' h, la confiabilidad es buena (' + r.toFixed(1) + '%), aunque existe riesgo operativo a monitorear.';
+    else if (r >= 70) return 'Para un horizonte de ' + t + ' h, la confiabilidad es moderada (' + r.toFixed(1) + '%). Revisar si es aceptable según criticidad del activo.';
+    else return 'Para un horizonte de ' + t + ' h, la confiabilidad es baja (' + r.toFixed(1) + '%). El riesgo de falla en ese intervalo es considerable.';
+  }
+
+  return '<p><b>MTBF:</b> ' + iMTBF + '</p>' +
+    '<p><b>MTTR:</b> ' + iMTTR + '</p>' +
+    '<p><b>Disponibilidad:</b> ' + iDisp + '</p>' +
+    '<p><b>OEE:</b> ' + iOEE + '</p>' +
+    '<p><b>Costo de paros:</b> ' + iCosto + '</p><br>' +
+    '<p><b>Confiabilidad t1:</b> ' + iConf(t1, r1) + '</p>' +
+    '<p><b>Confiabilidad t2:</b> ' + iConf(t2, r2) + '</p>' +
+    '<p><b>Confiabilidad t3:</b> ' + iConf(t3, r3) + '</p>';
+}
+
+function buildScore(mtbf, mttr, disp, oee) {
+  var s1 = mtbf >= 400 ? 100 : mtbf >= 250 ? 80 : mtbf >= 120 ? 60 : 30;
+  var s2 = mttr <= 3 ? 100 : mttr <= 6 ? 80 : mttr <= 10 ? 60 : 30;
+  var s3 = disp >= 98 ? 100 : disp >= 95 ? 80 : disp >= 90 ? 60 : 30;
+  var s4 = oee >= 85 ? 100 : oee >= 75 ? 80 : oee >= 65 ? 60 : 30;
+  var score = s1*0.20 + s2*0.20 + s3*0.30 + s4*0.30;
+
+  var cls, estado, lectura;
+  if (score >= 85) { cls = 'good'; estado = 'Óptimo'; lectura = 'El activo presenta un desempeño sólido y condiciones operativas saludables.'; }
+  else if (score >= 60) { cls = 'warn'; estado = 'Aceptable'; lectura = 'El activo opera en un rango funcional, pero con oportunidades claras de mejora.'; }
+  else { cls = 'bad'; estado = 'Crítico'; lectura = 'El activo presenta riesgo operativo y requiere acciones prioritarias.'; }
+
+  document.getElementById('v-score').textContent = score.toFixed(0);
+  document.getElementById('v-score').className = 'kpi-value ' + cls;
+  document.getElementById('dot-score').className = 'status-dot ' + cls;
+  document.getElementById('lbl-score').textContent = estado;
+  document.getElementById('card-score').className = 'kpi-card ' + (cls === 'good' ? 'active' : cls === 'warn' ? 'warn-card' : 'danger-card');
+  document.getElementById('score-desc').innerHTML = '<b>Diagnóstico:</b> ' + lectura;
+}
+
+function buildRecommendations(mtbf, mttr, disp, oee, costo) {
+  var recos = [];
+  if (mtbf < 120) recos.push('<b>MTBF bajo:</b> Aumentar la confiabilidad mediante análisis de causa raíz (RCA) y ajuste del plan de mantenimiento.');
+  else if (mtbf < 300) recos.push('<b>MTBF mejorable:</b> Revisar patrones de falla para seguir fortaleciendo la confiabilidad del activo.');
+  if (mttr > 6) recos.push('<b>MTTR alto:</b> Reducir tiempos de intervención mejorando logística, repuestos y procedimientos.');
+  else if (mttr > 4) recos.push('<b>MTTR mejorable:</b> Optimizar intervenciones mediante estandarización y entrenamiento técnico.');
+  if (disp < 90) recos.push('<b>Disponibilidad baja:</b> Reducir tiempos de paro y mejorar planificación del mantenimiento.');
+  else if (disp < 97) recos.push('<b>Disponibilidad mejorable:</b> Atacar microparos y pérdidas operativas menores.');
+  if (oee < 65) recos.push('<b>OEE crítico:</b> Analizar pérdidas en disponibilidad, velocidad y calidad (Six Big Losses).');
+  else if (oee < 85) recos.push('<b>OEE mejorable:</b> Optimizar rendimiento enfocándose en velocidad, calidad y tiempos menores.');
+  if (costo > 1000) recos.push('<b>Costo alto:</b> Priorizar acciones correctivas para reducir impacto económico.');
+  else if (costo > 300) recos.push('<b>Costo relevante:</b> Justificar mejoras preventivas basadas en impacto económico.');
+  var t3 = g('t3');
+  var r3 = mtbf > 0 ? Math.exp(-t3/mtbf)*100 : 0;
+  if (r3 < 70) recos.push('<b>Confiabilidad baja (largo plazo):</b> Revisar estrategia de mantenimiento para operación extendida.');
+  else if (r3 < 85) recos.push('<b>Confiabilidad moderada:</b> Validar si el nivel de riesgo es aceptable según criticidad.');
+  if (recos.length === 0) recos.push('<b>Desempeño sólido:</b> Mantener estrategia actual y continuar con mejora continua.');
+  return recos.map(function(r) { return '<p>• ' + r + '</p>'; }).join('');
+}
+
+document.getElementById('btn-calc').onclick = function() {
+  var used = getUses();
+  if (used >= MAX_FREE) { showPaywall(); return; }
+
+  var ht = g('i-ht') || 1;
+  var nf = g('i-nf') || 1;
+  var hp = g('i-hp');
+  var hr = g('i-hr');
+  var vr = g('i-vr');
+  var vi = g('i-vi') || 1;
+  var ch = g('i-ch');
+  var pd = g('i-pd');
+
+  _mtbf = ht / nf;
+  _mttr = hr / nf;
+  var disp  = ((ht - hp) / ht) * 100;
+  var disp2 = (_mtbf / (_mtbf + _mttr)) * 100;
+  var oee   = (disp / 100) * (vr / vi) * (1 - pd / 100) * 100;
+  var costo = hp * ch;
+
+  setKpi('mtbf',  _mtbf.toFixed(1) + ' h',  classify(_mtbf, 200, 80),   'Excelente', 'Aceptable', 'Crítico');
+  setKpi('mttr',  _mttr.toFixed(1) + ' h',  classify(10-_mttr, 5, 2),   'Rápido', 'Mejorable', 'Lento');
+  setKpi('disp',  disp.toFixed(2) + '%',    classify(disp, 90, 75),     'Excelente', 'Aceptable', 'Crítico');
+  setKpi('disp2', disp2.toFixed(2) + '%',   classify(disp2, 90, 75),    'Excelente', 'Aceptable', 'Crítico');
+  setKpi('oee',   oee.toFixed(2) + '%',     classify(oee, 85, 60),      'Clase mundial', 'Mejorable', 'Crítico');
+
+  document.getElementById('v-costo').textContent = '$' + Math.round(costo).toLocaleString();
+  document.getElementById('card-costo').className = 'kpi-card danger-card';
+
+  calcConf();
+
+  var d = '';
+  d += '<b>MTBF = ' + _mtbf.toFixed(1) + ' h</b> — el equipo falla en promedio cada ' + _mtbf.toFixed(1) + ' horas. ';
+  d += '<b>MTTR = ' + _mttr.toFixed(1) + ' h</b> — cada falla demora ' + _mttr.toFixed(1) + ' horas en resolverse. ';
+  if (_mttr > 8) d += '<span class="warn-text">Tiempo de reparación alto</span> — revisar stock de repuestos y procedimientos. ';
+  if (disp >= 95) d += '<span class="highlight">Disponibilidad muy alta (' + disp.toFixed(2) + '%)</span> — equipo altamente confiable. ';
+  else if (disp >= 85) d += '<b>Disponibilidad aceptable (' + disp.toFixed(2) + '%)</b> — hay oportunidad de reducir paros. ';
+  else d += '<span class="danger-text">Disponibilidad crítica (' + disp.toFixed(2) + '%)</span> — priorizar plan de mantenimiento preventivo. ';
+  if (oee >= 85) d += '<span class="highlight">OEE clase mundial (' + oee.toFixed(2) + '%)</span> — rendimiento sobresaliente. ';
+  else if (oee >= 60) d += '<b>OEE mejorable (' + oee.toFixed(2) + '%)</b> — analizar pérdidas de velocidad y calidad. ';
+  else d += '<span class="danger-text">OEE crítico (' + oee.toFixed(2) + '%)</span> — pérdidas significativas en disponibilidad, velocidad o calidad. ';
+  if (costo > 0) d += 'Costo directo de paros: <span class="danger-text">$' + Math.round(costo).toLocaleString() + ' USD</span>.';
+
+  document.getElementById('diag').innerHTML = d;
+  document.getElementById('interp').innerHTML = buildInterpretation(_mtbf, _mttr, disp, oee, costo);
+  buildScore(_mtbf, _mttr, disp, oee);
+  document.getElementById('reco-box').innerHTML = buildRecommendations(_mtbf, _mttr, disp, oee, costo);
+
+  setUses(used + 1);
+  updateBadge();
+  if (used + 1 >= MAX_FREE) { showPaywall(); }
+};
+
+document.getElementById('btn-copy').onclick = function() {
+  var txt = [
+    'RESULTADOS — MaintCalc',
+    '------------------------',
+    'MTBF: ' + document.getElementById('v-mtbf').textContent,
+    'MTTR: ' + document.getElementById('v-mttr').textContent,
+    'Disponibilidad: ' + document.getElementById('v-disp').textContent,
+    'Disponibilidad (MTBF): ' + document.getElementById('v-disp2').textContent,
+    'OEE: ' + document.getElementById('v-oee').textContent,
+    'Costo de paros: ' + document.getElementById('v-costo').textContent,
+    'Score global: ' + document.getElementById('v-score').textContent,
+    'Estado general: ' + document.getElementById('lbl-score').textContent
+  ].join('\n');
+  navigator.clipboard.writeText(txt).then(function() {
+    var btn = document.getElementById('btn-copy');
+    btn.textContent = '¡Copiado!';
+    setTimeout(function() { btn.textContent = 'Copiar resultados'; }, 2000);
+  });
+};
+</script>
+</body>
+</html>
