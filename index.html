@@ -475,7 +475,7 @@ function buildScore(mtbf, mttr, disp, oee) {
     lectura = 'El activo presenta riesgo operativo y requiere acciones prioritarias.';
   }
 
-  function buildRecommendations(mtbf, mttr, disp, oee, costo) {
+function buildRecommendations(mtbf, mttr, disp, oee, costo) {
   var recos = [];
 
   if (mtbf < 120) {
@@ -502,7 +502,12 @@ function buildScore(mtbf, mttr, disp, oee) {
     recos.push('El activo presenta buen desempeño. Mantener estrategia actual y enfocarse en mejora continua.');
   }
 
-  return recos.map(r => `<p>• ${r}</p>`).join('');
+  var html = '';
+  for (var i = 0; i < recos.length; i++) {
+    html += '<p>• ' + recos[i] + '</p>';
+  }
+
+  return html;
 }
   
   // llenar tarjeta
@@ -558,7 +563,8 @@ document.getElementById('btn-calc').onclick = function() {
   document.getElementById('card-costo').className = 'kpi-card danger-card';
   buildScore(_mtbf, _mttr, disp, oee);
   document.getElementById('reco-box').innerHTML = buildRecommendations(_mtbf, _mttr, disp, oee, costo);
-
+};
+  
   calcConf();
 
   var d = '';
