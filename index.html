@@ -491,51 +491,46 @@ function buildRecommendations(mtbf, mttr, disp, oee, costo) {
   var recos = [];
 
   if (mtbf < 120) {
-    recos.push('Aumentar MTBF mediante análisis de causa raíz (RCA) y revisión del plan de mantenimiento preventivo.');
+    recos.push('<b>MTBF bajo:</b> Aumentar la confiabilidad mediante análisis de causa raíz (RCA) y ajuste del plan de mantenimiento.');
   } else if (mtbf < 300) {
-    recos.push('Revisar patrones de falla para seguir fortaleciendo la confiabilidad del activo.');
+    recos.push('<b>MTBF mejorable:</b> Revisar patrones de falla para seguir fortaleciendo la confiabilidad del activo.');
   }
 
   if (mttr > 6) {
-    recos.push('Reducir MTTR mejorando tiempos de respuesta, disponibilidad de repuestos y estandarización de procedimientos.');
+    recos.push('<b>MTTR alto:</b> Reducir tiempos de intervención mejorando logística, repuestos y procedimientos.');
   } else if (mttr > 4) {
-    recos.push('Optimizar MTTR mediante estandarización de intervenciones y mejor preparación técnica del personal.');
+    recos.push('<b>MTTR mejorable:</b> Optimizar intervenciones mediante estandarización y entrenamiento técnico.');
   }
 
   if (disp < 90) {
-    recos.push('Incrementar disponibilidad reduciendo tiempos de paro y optimizando la planificación del mantenimiento.');
+    recos.push('<b>Disponibilidad baja:</b> Reducir tiempos de paro y mejorar planificación del mantenimiento.');
   } else if (disp < 97) {
-    recos.push('Trabajar sobre microparos y tiempos improductivos para mejorar la disponibilidad del activo.');
+    recos.push('<b>Disponibilidad mejorable:</b> Atacar microparos y pérdidas operativas menores.');
   }
 
   if (oee < 65) {
-    recos.push('Mejorar OEE analizando pérdidas en disponibilidad, velocidad y calidad (Six Big Losses).');
+    recos.push('<b>OEE crítico:</b> Analizar pérdidas en disponibilidad, velocidad y calidad (Six Big Losses).');
   } else if (oee < 85) {
-    recos.push('Elevar el OEE enfocándose en pérdidas de velocidad, calidad y tiempos menores de paro.');
+    recos.push('<b>OEE mejorable:</b> Optimizar rendimiento enfocándose en velocidad, calidad y tiempos menores.');
   }
 
   if (costo > 1000) {
-    recos.push('El costo de paros es alto. Priorizar acciones correctivas para reducir impacto económico.');
+    recos.push('<b>Costo alto:</b> Priorizar acciones correctivas para reducir impacto económico.');
   } else if (costo > 300) {
-    recos.push('Monitorear el costo de paros y justificar acciones preventivas con base en impacto económico.');
+    recos.push('<b>Costo relevante:</b> Justificar mejoras preventivas basadas en impacto económico.');
   }
 
-  var t1 = g('t1');
-  var t2 = g('t2');
   var t3 = g('t3');
-
-  var r1 = mtbf > 0 ? Math.exp(-t1 / mtbf) * 100 : 0;
-  var r2 = mtbf > 0 ? Math.exp(-t2 / mtbf) * 100 : 0;
   var r3 = mtbf > 0 ? Math.exp(-t3 / mtbf) * 100 : 0;
 
   if (r3 < 70) {
-    recos.push('La confiabilidad en horizontes largos es baja. Conviene revisar la estrategia para activos críticos y ventanas operativas extendidas.');
+    recos.push('<b>Confiabilidad baja (largo plazo):</b> Revisar estrategia de mantenimiento para operación extendida.');
   } else if (r3 < 85) {
-    recos.push('La confiabilidad de largo plazo es moderada. Conviene validar si el riesgo es aceptable según la criticidad del activo.');
+    recos.push('<b>Confiabilidad moderada:</b> Validar si el nivel de riesgo es aceptable según criticidad.');
   }
 
   if (recos.length === 0) {
-    recos.push('El activo presenta buen desempeño. Mantener estrategia actual y enfocarse en mejora continua.');
+    recos.push('<b>Desempeño sólido:</b> Mantener estrategia actual y continuar con mejora continua.');
   }
 
   var html = '';
