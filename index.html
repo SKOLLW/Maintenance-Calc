@@ -259,7 +259,6 @@
       <label>t1 (hr)</label><input id="t1" type="number" value="8">
       <label>t2 (hr)</label><input id="t2" type="number" value="24">
       <label>t3 (hr)</label><input id="t3" type="number" value="168">
-      <button class="conf-btn" id="btn-conf">Calcular</button>
     </div>
     <div class="conf-results" id="conf-results">
       <div class="diag-text" style="font-size:12px;">Calcula los KPIs primero.</div>
@@ -360,12 +359,36 @@ function buildInterpretation(mtbf, mttr, disp, oee, costo) {
     interpretacionCosto = 'El costo de paros es alto y justifica acciones correctivas y preventivas prioritarias.';
   }
 
+  var t1 = g('t1');
+  var t2 = g('t2');
+  var t3 = g('t3');
+
+  var r1 = mtbf > 0 ? Math.exp(-t1 / mtbf) * 100 : 0;
+  var r2 = mtbf > 0 ? Math.exp(-t2 / mtbf) * 100 : 0;
+  var r3 = mtbf > 0 ? Math.exp(-t3 / mtbf) * 100 : 0;
+
+  function interpretarConfiabilidad(t, r) {
+    if (r >= 95) {
+      return 'Para un horizonte de ' + t + ' h, la confiabilidad es muy alta (' + r.toFixed(1) + '%). La probabilidad de operar sin falla en ese intervalo es excelente.';
+    } else if (r >= 85) {
+      return 'Para un horizonte de ' + t + ' h, la confiabilidad es buena (' + r.toFixed(1) + '%), aunque ya existe riesgo operativo a monitorear.';
+    } else if (r >= 70) {
+      return 'Para un horizonte de ' + t + ' h, la confiabilidad es moderada (' + r.toFixed(1) + '%). Conviene revisar si este nivel es aceptable para la criticidad del activo.';
+    } else {
+      return 'Para un horizonte de ' + t + ' h, la confiabilidad es baja (' + r.toFixed(1) + '%). El riesgo de falla dentro de ese intervalo es considerable.';
+    }
+  }
+
   return `
     <p><b>MTBF:</b> ${interpretacionMTBF}</p>
     <p><b>MTTR:</b> ${interpretacionMTTR}</p>
     <p><b>Disponibilidad:</b> ${interpretacionDisp}</p>
     <p><b>OEE:</b> ${interpretacionOEE}</p>
     <p><b>Costo de paros:</b> ${interpretacionCosto}</p>
+    <br>
+    <p><b>Confiabilidad t1:</b> ${interpretarConfiabilidad(t1, r1)}</p>
+    <p><b>Confiabilidad t2:</b> ${interpretarConfiabilidad(t2, r2)}</p>
+    <p><b>Confiabilidad t3:</b> ${interpretarConfiabilidad(t3, r3)}</p>
   `;
 }
 function calcConf() {
@@ -423,8 +446,6 @@ document.getElementById('btn-calc').onclick = function() {
   document.getElementById('interp').innerHTML = buildInterpretation(_mtbf, _mttr, disp, oee, costo);
 };
 
-  
-document.getElementById('btn-conf').onclick = calcConf;
 
 document.getElementById('btn-copy').onclick = function() {
   var txt = [
