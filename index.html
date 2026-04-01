@@ -252,12 +252,25 @@
     </div>
   </div>
   
-  <div class="section-label">Score global</div>
-  <div class="diag-section">
-    <div class="diag-text" id="score-box">
-      Calcula los KPIs para ver el score global del activo.
+<div class="section-label">Score global</div>
+
+<div class="kpi-grid">
+  <div class="kpi-card" id="card-score">
+    <div class="kpi-name">Score global</div>
+    <div class="kpi-value" id="v-score">—</div>
+    <div class="kpi-unit">evaluación del activo</div>
+    <div>
+      <span class="status-dot" id="dot-score"></span>
+      <span class="status-label" id="lbl-score">—</span>
     </div>
   </div>
+</div>
+
+<div class="diag-section">
+  <div class="diag-text" id="score-desc">
+    Calcula los KPIs para ver la evaluación del activo.
+  </div>
+</div>
   
   <div class="section-label">Confiabilidad R(t)</div>
   <div class="conf-section">
@@ -432,25 +445,38 @@ function buildScore(mtbf, mttr, disp, oee) {
     (oeeScore * 0.30);
 
   var estado = '';
+  var clase = '';
   var lectura = '';
 
   if (score >= 80) {
     estado = 'Óptimo';
+    clase = 'good';
     lectura = 'El activo presenta un desempeño sólido y condiciones operativas saludables.';
   } else if (score >= 60) {
     estado = 'Aceptable';
+    clase = 'warn';
     lectura = 'El activo opera en un rango funcional, pero con oportunidades claras de mejora.';
   } else {
     estado = 'Crítico';
+    clase = 'bad';
     lectura = 'El activo presenta riesgo operativo y requiere acciones prioritarias.';
   }
 
-  return `
-    <p><b>Score global:</b> ${score.toFixed(0)} / 100</p>
-    <p><b>Estado general:</b> ${estado}</p>
-    <p><b>Lectura:</b> ${lectura}</p>
+  // llenar tarjeta
+  document.getElementById('v-score').textContent = score.toFixed(0);
+  document.getElementById('v-score').className = 'kpi-value ' + clase;
+  document.getElementById('dot-score').className = 'status-dot ' + clase;
+  document.getElementById('lbl-score').textContent = estado;
+
+  var card = document.getElementById('card-score');
+  card.className = 'kpi-card ' + (clase === 'good' ? 'active' : clase === 'warn' ? 'warn-card' : 'danger-card');
+
+  // descripción
+  document.getElementById('score-desc').innerHTML = `
+    <b>Lectura ejecutiva:</b> ${lectura}
   `;
-}  
+}
+  
 function calcConf() {
   if (_mtbf <= 0) return;
   var ts = [g('t1'), g('t2'), g('t3')];
@@ -487,7 +513,7 @@ document.getElementById('btn-calc').onclick = function() {
 
   document.getElementById('v-costo').textContent = '$' + Math.round(costo).toLocaleString();
   document.getElementById('card-costo').className = 'kpi-card danger-card';
-  document.getElementById('score-box').innerHTML = buildScore(_mtbf, _mttr, disp, oee);
+  buildScore(_mtbf, _mttr, disp, oee);
 
   calcConf();
 
