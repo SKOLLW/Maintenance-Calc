@@ -418,24 +418,24 @@ function buildScore(mtbf, mttr, disp, oee) {
   var dispScore = 0;
   var oeeScore = 0;
 
-  if (mtbf >= 300) mtbfScore = 100;
-  else if (mtbf >= 200) mtbfScore = 80;
-  else if (mtbf >= 100) mtbfScore = 60;
+  if (mtbf >= 400) mtbfScore = 100;
+  else if (mtbf >= 250) mtbfScore = 80;
+  else if (mtbf >= 120) mtbfScore = 60;
   else mtbfScore = 30;
 
-  if (mttr <= 4) mttrScore = 100;
-  else if (mttr <= 8) mttrScore = 80;
-  else if (mttr <= 12) mttrScore = 60;
+  if (mttr <= 3) mttrScore = 100;
+  else if (mttr <= 6) mttrScore = 80;
+  else if (mttr <= 10) mttrScore = 60;
   else mttrScore = 30;
 
-  if (disp >= 97) dispScore = 100;
-  else if (disp >= 90) dispScore = 80;
-  else if (disp >= 80) dispScore = 60;
+  if (disp >= 98) dispScore = 100;
+  else if (disp >= 95) dispScore = 80;
+  else if (disp >= 90) dispScore = 60;
   else dispScore = 30;
 
   if (oee >= 85) oeeScore = 100;
-  else if (oee >= 70) oeeScore = 80;
-  else if (oee >= 60) oeeScore = 60;
+  else if (oee >= 75) oeeScore = 80;
+  else if (oee >= 65) oeeScore = 60;
   else oeeScore = 30;
 
   var score =
