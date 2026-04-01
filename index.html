@@ -271,6 +271,13 @@
     <div class="diag-text" id="diag">Ingresa los datos del equipo y presiona <b>Calcular KPIs</b> para ver el diagnóstico.</div>
   </div>
 
+  <div class="section-label">Interpretación experta</div>
+  <div class="diag-section">
+    <div class="diag-text" id="interp">
+      Calcula los KPIs para ver la interpretación técnica de cada indicador.
+    </div>
+  </div>
+
   <div class="actions">
     <button class="action-btn" onclick="window.print()">Imprimir reporte</button>
     <button class="action-btn" id="btn-copy">Copiar resultados</button>
@@ -303,6 +310,72 @@ function setKpi(id, value, unit, cls, statusGood, statusWarn, statusBad) {
   card.className = 'kpi-card ' + (cls === 'good' ? 'active' : cls === 'warn' ? 'warn-card' : 'danger-card');
 }
 
+  function setKpi(id, value, unit, cls, statusGood, statusWarn, statusBad) {
+  document.getElementById('v-'+id).textContent = value;
+  document.getElementById('v-'+id).className = 'kpi-value ' + cls;
+  document.getElementById('dot-'+id).className = 'status-dot ' + cls;
+  document.getElementById('lbl-'+id).textContent = labelFor(cls, statusGood, statusWarn, statusBad);
+  var card = document.getElementById('card-'+id);
+  card.className = 'kpi-card ' + (cls === 'good' ? 'active' : cls === 'warn' ? 'warn-card' : 'danger-card');
+}
+
+function buildInterpretation(mtbf, mttr, disp, oee, costo) {
+  var interpretacionMTBF = '';
+  var interpretacionMTTR = '';
+  var interpretacionDisp = '';
+  var interpretacionOEE = '';
+  var interpretacionCosto = '';
+
+  if (mtbf < 100) {
+    interpretacionMTBF = 'Frecuencia de fallas alta. Se recomienda análisis de causa raíz y revisión del plan de mantenimiento preventivo.';
+  } else if (mtbf < 300) {
+    interpretacionMTBF = 'Frecuencia de fallas moderada. Existe oportunidad de mejorar la confiabilidad del activo.';
+  } else {
+    interpretacionMTBF = 'Buen desempeño en confiabilidad. El equipo presenta intervalos adecuados entre fallas.';
+  }
+
+  if (mttr > 8) {
+    interpretacionMTTR = 'Tiempo de reparación alto. Conviene revisar disponibilidad de repuestos, tiempos de respuesta y estandarización de intervenciones.';
+  } else if (mttr > 4) {
+    interpretacionMTTR = 'Tiempo de reparación moderado. Hay oportunidad de optimizar la mantenibilidad del activo.';
+  } else {
+    interpretacionMTTR = 'Buen tiempo de reparación. La respuesta ante fallas es eficiente.';
+  }
+
+  if (disp < 90) {
+    interpretacionDisp = 'Disponibilidad baja. El activo está perdiendo tiempo operativo de forma importante.';
+  } else if (disp < 97) {
+    interpretacionDisp = 'Disponibilidad aceptable, pero con margen de mejora para reducir pérdidas operativas.';
+  } else {
+    interpretacionDisp = 'Alta disponibilidad. El activo mantiene un buen nivel de servicio operativo.';
+  }
+
+  if (oee < 60) {
+    interpretacionOEE = 'OEE bajo. Existen pérdidas relevantes en disponibilidad, rendimiento o calidad.';
+  } else if (oee < 85) {
+    interpretacionOEE = 'OEE en rango medio. Hay oportunidades claras de mejora operacional.';
+  } else {
+    interpretacionOEE = 'OEE de clase mundial. El desempeño global del equipo es sobresaliente.';
+  }
+
+  if (costo <= 0) {
+    interpretacionCosto = 'No se registran pérdidas directas por paros en el período analizado.';
+  } else if (costo < 500) {
+    interpretacionCosto = 'El costo directo de paros es bajo, aunque sigue siendo importante monitorearlo.';
+  } else if (costo < 2000) {
+    interpretacionCosto = 'El costo de paros ya representa un impacto económico relevante.';
+  } else {
+    interpretacionCosto = 'El costo de paros es alto y justifica acciones correctivas y preventivas prioritarias.';
+  }
+
+  return `
+    <p><b>MTBF:</b> ${interpretacionMTBF}</p>
+    <p><b>MTTR:</b> ${interpretacionMTTR}</p>
+    <p><b>Disponibilidad:</b> ${interpretacionDisp}</p>
+    <p><b>OEE:</b> ${interpretacionOEE}</p>
+    <p><b>Costo de paros:</b> ${interpretacionCosto}</p>
+  `;
+}
 function calcConf() {
   if (_mtbf <= 0) return;
   var ts = [g('t1'), g('t2'), g('t3')];
@@ -356,7 +429,8 @@ document.getElementById('btn-calc').onclick = function() {
 
   document.getElementById('diag').innerHTML = d;
 };
-
+document.getElementById('interp').innerHTML = buildInterpretation(_mtbf, _mttr, disp, oee, costo);
+  
 document.getElementById('btn-conf').onclick = calcConf;
 
 document.getElementById('btn-copy').onclick = function() {
