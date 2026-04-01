@@ -303,6 +303,13 @@
     </div>
   </div>
 
+  <div class="section-label">Recomendaciones</div>
+<div class="diag-section">
+  <div class="diag-text" id="reco-box">
+    Calcula los KPIs para ver recomendaciones automáticas.
+  </div>
+</div>
+  
   <div class="actions">
     <button class="action-btn" onclick="window.print()">Imprimir reporte</button>
     <button class="action-btn" id="btn-copy">Copiar resultados</button>
@@ -468,6 +475,36 @@ function buildScore(mtbf, mttr, disp, oee) {
     lectura = 'El activo presenta riesgo operativo y requiere acciones prioritarias.';
   }
 
+  function buildRecommendations(mtbf, mttr, disp, oee, costo) {
+  var recos = [];
+
+  if (mtbf < 120) {
+    recos.push('Aumentar MTBF mediante análisis de causa raíz (RCA) y revisión del plan de mantenimiento preventivo.');
+  }
+
+  if (mttr > 6) {
+    recos.push('Reducir MTTR mejorando tiempos de respuesta, disponibilidad de repuestos y estandarización de procedimientos.');
+  }
+
+  if (disp < 90) {
+    recos.push('Incrementar disponibilidad reduciendo tiempos de paro y optimizando la planificación del mantenimiento.');
+  }
+
+  if (oee < 65) {
+    recos.push('Mejorar OEE analizando pérdidas en disponibilidad, velocidad y calidad (Six Big Losses).');
+  }
+
+  if (costo > 1000) {
+    recos.push('El costo de paros es alto. Priorizar acciones correctivas para reducir impacto económico.');
+  }
+
+  if (recos.length === 0) {
+    recos.push('El activo presenta buen desempeño. Mantener estrategia actual y enfocarse en mejora continua.');
+  }
+
+  return recos.map(r => `<p>• ${r}</p>`).join('');
+}
+  
   // llenar tarjeta
   document.getElementById('v-score').textContent = score.toFixed(0);
   document.getElementById('v-score').className = 'kpi-value ' + clase;
@@ -520,6 +557,7 @@ document.getElementById('btn-calc').onclick = function() {
   document.getElementById('v-costo').textContent = '$' + Math.round(costo).toLocaleString();
   document.getElementById('card-costo').className = 'kpi-card danger-card';
   buildScore(_mtbf, _mttr, disp, oee);
+  document.getElementById('reco-box').innerHTML = buildRecommendations(_mtbf, _mttr, disp, oee, costo);
 
   calcConf();
 
