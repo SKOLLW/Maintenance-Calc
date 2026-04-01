@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MaintCalc — Calculadora de KPIs de Mantenimiento</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f11;
+    --surface: #16181c;
+    --surface2: #1e2126;
+    --border: #2a2d34;
+    --accent: #00e5a0;
+    --accent2: #0066ff;
+    --warn: #f5a623;
+    --danger: #ff4d4d;
+    --text: #f0f2f5;
+    --muted: #6b7280;
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+    --display: 'Syne', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px;
+  }
+  .logo { font-family: var(--display); font-weight: 800; font-size: 18px; letter-spacing: -0.5px; }
+  .logo span { color: var(--accent); }
+  .logo-sub { font-size: 11px; color: var(--muted); font-family: var(--mono); margin-top: 1px; }
+  .header-badge {
+    font-family: var(--mono); font-size: 11px; color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 99px;
+    padding: 3px 12px; opacity: 0.8;
+  }
+
+  /* LAYOUT */
+  main { max-width: 960px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+  .hero { margin-bottom: 2.5rem; }
+  .hero h1 { font-family: var(--display); font-size: clamp(28px, 4vw, 42px); font-weight: 800; letter-spacing: -1px; line-height: 1.1; }
+  .hero h1 em { color: var(--accent); font-style: normal; }
+  .hero p { color: var(--muted); font-size: 15px; margin-top: 10px; max-width: 520px; line-height: 1.6; }
+
+  /* INPUTS */
+  .section-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+    color: var(--muted); text-transform: uppercase; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .input-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 2rem; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 11px; color: var(--muted); font-family: var(--mono); letter-spacing: 0.04em; }
+  .field input {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 15px; font-family: var(--mono); color: var(--text);
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+  .field input::-webkit-outer-spin-button,
+  .field input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .field input:focus { outline: none; border-color: var(--accent); }
+
+  /* CALC BUTTON */
+  .calc-btn {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--accent); color: #000;
+    border: none; border-radius: 10px;
+    font-family: var(--display); font-weight: 700; font-size: 15px;
+    padding: 13px 28px; cursor: pointer;
+    transition: transform 0.15s, opacity 0.15s;
+    margin-bottom: 2.5rem;
+  }
+  .calc-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .calc-btn:active { transform: scale(0.97); }
+  .calc-btn svg { width: 18px; height: 18px; }
+
+  /* KPI GRID */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 2rem; }
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px;
+    transition: border-color 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .kpi-card.active { border-color: var(--accent); }
+  .kpi-card.warn-card { border-color: var(--warn); }
+  .kpi-card.danger-card { border-color: var(--danger); }
+  .kpi-name { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+  .kpi-value { font-family: var(--display); font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 4px; color: var(--text); }
+  .kpi-value.good { color: var(--accent); }
+  .kpi-value.warn { color: var(--warn); }
+  .kpi-value.bad { color: var(--danger); }
+  .kpi-unit { font-size: 11px; color: var(--muted); margin-bottom: 10px; font-family: var(--mono); }
+  .kpi-formula { font-family: var(--mono); font-size: 10px; color: var(--border); background: var(--surface2); border-radius: 4px; padding: 4px 8px; display: inline-block; transition: color 0.3s; }
+  .kpi-card.active .kpi-formula,
+  .kpi-card.warn-card .kpi-formula,
+  .kpi-card.danger-card .kpi-formula { color: var(--muted); }
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--border); display: inline-block;
+    margin-right: 6px; transition: background 0.3s;
+  }
+  .status-dot.good { background: var(--accent); }
+  .status-dot.warn { background: var(--warn); }
+  .status-dot.bad { background: var(--danger); }
+  .status-label { font-size: 11px; font-family: var(--mono); color: var(--muted); }
+
+  /* CONFIABILIDAD */
+  .conf-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 2rem; }
+  .conf-inputs { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+  .conf-inputs label { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+  .conf-inputs input {
+    width: 80px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 7px 10px; font-size: 13px;
+    font-family: var(--mono); color: var(--text);
+    -moz-appearance: textfield;
+  }
+  .conf-inputs input::-webkit-outer-spin-button,
+  .conf-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .conf-inputs input:focus { outline: none; border-color: var(--accent); }
+  .conf-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); border-radius: 6px; padding: 7px 14px;
+    font-size: 12px; font-family: var(--mono); cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .conf-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .conf-results { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .conf-chip {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 16px; min-width: 100px;
+  }
+  .conf-chip-t { font-size: 10px; color: var(--muted); font-family: var(--mono); margin-bottom: 4px; }
+  .conf-chip-v { font-family: var(--display); font-size: 20px; font-weight: 700; color: var(--accent); }
+
+  /* DIAGNÓSTICO */
+  .diag-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 2rem; }
+  .diag-text { font-size: 14px; color: var(--muted); line-height: 1.8; }
+  .diag-text b { color: var(--text); font-weight: 500; }
+  .diag-text .highlight { color: var(--accent); font-weight: 500; }
+  .diag-text .warn-text { color: var(--warn); font-weight: 500; }
+  .diag-text .danger-text { color: var(--danger); font-weight: 500; }
+
+  /* BOTTOM ACTIONS */
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .action-btn {
+    padding: 10px 20px; border-radius: 8px; font-size: 13px;
+    font-family: var(--mono); cursor: pointer; transition: all 0.2s;
+    border: 1px solid var(--border); background: transparent; color: var(--muted);
+  }
+  .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* FOOTER */
+  footer { border-top: 1px solid var(--border); text-align: center; padding: 1.5rem; font-size: 12px; color: var(--muted); font-family: var(--mono); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .kpi-card { animation: fadeUp 0.4s ease both; }
+  .kpi-card:nth-child(1) { animation-delay: 0.05s; }
+  .kpi-card:nth-child(2) { animation-delay: 0.10s; }
+  .kpi-card:nth-child(3) { animation-delay: 0.15s; }
+  .kpi-card:nth-child(4) { animation-delay: 0.20s; }
+  .kpi-card:nth-child(5) { animation-delay: 0.25s; }
+  .kpi-card:nth-child(6) { animation-delay: 0.30s; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Maint<span>Calc</span></div>
+    <div class="logo-sub">KPI Calculator for Industrial Maintenance</div>
+  </div>
+  <div class="header-badge">v1.0 · MVP</div>
+</header>
+
+<main>
+  <div class="hero">
+    <h1>Calcula tus KPIs de<br><em>mantenimiento industrial</em></h1>
+    <p>MTBF, MTTR, Disponibilidad, OEE y Confiabilidad en segundos. Ingresa los datos de tu equipo y obtén el diagnóstico al instante.</p>
+  </div>
+
+  <div class="section-label">Datos del equipo</div>
+  <div class="input-grid">
+    <div class="field"><label>Horas totales del período</label><input id="i-ht" type="number" value="720" placeholder="720"></div>
+    <div class="field"><label>Número de fallas</label><input id="i-nf" type="number" value="2" placeholder="2"></div>
+    <div class="field"><label>Horas totales de paro</label><input id="i-hp" type="number" value="10" placeholder="10"></div>
+    <div class="field"><label>Horas totales de reparación</label><input id="i-hr" type="number" value="10" placeholder="10"></div>
+    <div class="field"><label>Velocidad real (uds/hr)</label><input id="i-vr" type="number" value="85" placeholder="85"></div>
+    <div class="field"><label>Velocidad ideal (uds/hr)</label><input id="i-vi" type="number" value="100" placeholder="100"></div>
+    <div class="field"><label>Costo hora-máquina (USD)</label><input id="i-ch" type="number" value="50" placeholder="50"></div>
+    <div class="field"><label>Unidades defectuosas (%)</label><input id="i-pd" type="number" value="2" placeholder="2"></div>
+  </div>
+
+  <button class="calc-btn" id="btn-calc">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 7H6a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-3"/><path d="M9 15h3l8.5-8.5a1.5 1.5 0 00-3-3L9 12v3"/></svg>
+    Calcular KPIs
+  </button>
+
+  <div class="section-label">Resultados</div>
+  <div class="kpi-grid">
+    <div class="kpi-card" id="card-mtbf">
+      <div class="kpi-name">MTBF</div>
+      <div class="kpi-value" id="v-mtbf">—</div>
+      <div class="kpi-unit">horas entre fallas</div>
+      <div><span class="status-dot" id="dot-mtbf"></span><span class="status-label" id="lbl-mtbf">—</span></div>
+      <div style="margin-top:10px;"><span class="kpi-formula">Ht / Nf</span></div>
+    </div>
+    <div class="kpi-card" id="card-mttr">
+      <div class="kpi-name">MTTR</div>
+      <div class="kpi-value" id="v-mttr">—</div>
+      <div class="kpi-unit">horas por reparación</div>
+      <div><span class="status-dot" id="dot-mttr"></span><span class="status-label" id="lbl-mttr">—</span></div>
+      <div style="margin-top:10px;"><span class="kpi-formula">Hr / Nf</span></div>
+    </div>
+    <div class="kpi-card" id="card-disp">
+      <div class="kpi-name">Disponibilidad</div>
+      <div class="kpi-value" id="v-disp">—</div>
+      <div class="kpi-unit">% tiempo operativo</div>
+      <div><span class="status-dot" id="dot-disp"></span><span class="status-label" id="lbl-disp">—</span></div>
+      <div style="margin-top:10px;"><span class="kpi-formula">(Ht−Hp) / Ht × 100</span></div>
+    </div>
+    <div class="kpi-card" id="card-disp2">
+      <div class="kpi-name">Disponibilidad (MTBF)</div>
+      <div class="kpi-value" id="v-disp2">—</div>
+      <div class="kpi-unit">verificación por MTBF</div>
+      <div><span class="status-dot" id="dot-disp2"></span><span class="status-label" id="lbl-disp2">—</span></div>
+      <div style="margin-top:10px;"><span class="kpi-formula">MTBF / (MTBF+MTTR)</span></div>
+    </div>
+    <div class="kpi-card" id="card-oee">
+      <div class="kpi-name">OEE</div>
+      <div class="kpi-value" id="v-oee">—</div>
+      <div class="kpi-unit">eficiencia global del equipo</div>
+      <div><span class="status-dot" id="dot-oee"></span><span class="status-label" id="lbl-oee">—</span></div>
+      <div style="margin-top:10px;"><span class="kpi-formula">Disp × (Vr/Vi) × (1−Pd)</span></div>
+    </div>
+    <div class="kpi-card" id="card-costo">
+      <div class="kpi-name">Costo de paros</div>
+      <div class="kpi-value bad" id="v-costo">—</div>
+      <div class="kpi-unit">USD en el período</div>
+      <div><span class="status-dot bad"></span><span class="status-label">Pérdida directa</span></div>
+      <div style="margin-top:10px;"><span class="kpi-formula">Hp × Costo/hr</span></div>
+    </div>
+  </div>
+
+  <div class="section-label">Confiabilidad R(t)</div>
+  <div class="conf-section">
+    <div class="diag-text">La confiabilidad depende del horizonte de tiempo. Fórmula: <b>R(t) = e<sup>−t/MTBF</sup></b>. Ingresa los valores de t:</div>
+    <div class="conf-inputs">
+      <label>t1 (hr)</label><input id="t1" type="number" value="8">
+      <label>t2 (hr)</label><input id="t2" type="number" value="24">
+      <label>t3 (hr)</label><input id="t3" type="number" value="168">
+      <button class="conf-btn" id="btn-conf">Calcular</button>
+    </div>
+    <div class="conf-results" id="conf-results">
+      <div class="diag-text" style="font-size:12px;">Calcula los KPIs primero.</div>
+    </div>
+  </div>
+
+  <div class="section-label">Diagnóstico automático</div>
+  <div class="diag-section">
+    <div class="diag-text" id="diag">Ingresa los datos del equipo y presiona <b>Calcular KPIs</b> para ver el diagnóstico.</div>
+  </div>
+
+  <div class="actions">
+    <button class="action-btn" onclick="window.print()">Imprimir reporte</button>
+    <button class="action-btn" id="btn-copy">Copiar resultados</button>
+  </div>
+</main>
+
+<footer>
+  MaintCalc · Calculadora de KPIs de Mantenimiento Industrial · v1.0
+</footer>
+
+<script>
+var _mtbf = 0, _mttr = 0;
+
+function g(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+function classify(val, good, warn) {
+  return val >= good ? 'good' : val >= warn ? 'warn' : 'bad';
+}
+
+function labelFor(cls, lg, lw, lb) {
+  return cls === 'good' ? lg : cls === 'warn' ? lw : lb;
+}
+
+function setKpi(id, value, unit, cls, statusGood, statusWarn, statusBad) {
+  document.getElementById('v-'+id).textContent = value;
+  document.getElementById('v-'+id).className = 'kpi-value ' + cls;
+  document.getElementById('dot-'+id).className = 'status-dot ' + cls;
+  document.getElementById('lbl-'+id).textContent = labelFor(cls, statusGood, statusWarn, statusBad);
+  var card = document.getElementById('card-'+id);
+  card.className = 'kpi-card ' + (cls === 'good' ? 'active' : cls === 'warn' ? 'warn-card' : 'danger-card');
+}
+
+function calcConf() {
+  if (_mtbf <= 0) return;
+  var ts = [g('t1'), g('t2'), g('t3')];
+  var html = '';
+  ts.forEach(function(t) {
+    var r = Math.exp(-t / _mtbf) * 100;
+    html += '<div class="conf-chip"><div class="conf-chip-t">t = ' + t + ' h</div><div class="conf-chip-v">' + r.toFixed(1) + '%</div></div>';
+  });
+  document.getElementById('conf-results').innerHTML = html;
+}
+
+document.getElementById('btn-calc').onclick = function() {
+  var ht = g('i-ht') || 1;
+  var nf = g('i-nf') || 1;
+  var hp = g('i-hp');
+  var hr = g('i-hr');
+  var vr = g('i-vr');
+  var vi = g('i-vi') || 1;
+  var ch = g('i-ch');
+  var pd = g('i-pd');
+
+  _mtbf       = ht / nf;
+  _mttr       = hr / nf;
+  var disp    = ((ht - hp) / ht) * 100;
+  var disp2   = (_mtbf / (_mtbf + _mttr)) * 100;
+  var oee     = (disp / 100) * (vr / vi) * (1 - pd / 100) * 100;
+  var costo   = hp * ch;
+
+  setKpi('mtbf',  _mtbf.toFixed(1) + ' h',  'h', classify(_mtbf, 200, 80),  'Excelente', 'Aceptable', 'Crítico');
+  setKpi('mttr',  _mttr.toFixed(1) + ' h',  'h', classify(10 - _mttr, 5, 2), 'Rápido', 'Mejorable', 'Lento');
+  setKpi('disp',  disp.toFixed(2) + '%',    '%', classify(disp, 90, 75),    'Excelente', 'Aceptable', 'Crítico');
+  setKpi('disp2', disp2.toFixed(2) + '%',   '%', classify(disp2, 90, 75),   'Excelente', 'Aceptable', 'Crítico');
+  setKpi('oee',   oee.toFixed(2) + '%',     '%', classify(oee, 85, 60),     'Clase mundial', 'Mejorable', 'Crítico');
+
+  document.getElementById('v-costo').textContent = '$' + Math.round(costo).toLocaleString();
+  document.getElementById('card-costo').className = 'kpi-card danger-card';
+
+  calcConf();
+
+  var d = '';
+  d += '<b>MTBF = ' + _mtbf.toFixed(1) + ' h</b> — el equipo falla en promedio cada ' + _mtbf.toFixed(1) + ' horas. ';
+  d += '<b>MTTR = ' + _mttr.toFixed(1) + ' h</b> — cada falla demora ' + _mttr.toFixed(1) + ' horas en resolverse. ';
+  if (_mttr > 8) d += '<span class="warn-text">Tiempo de reparación alto</span> — revisar stock de repuestos y procedimientos de intervención. ';
+  if (disp >= 95) d += '<span class="highlight">Disponibilidad muy alta (' + disp.toFixed(2) + '%)</span> — equipo altamente confiable. ';
+  else if (disp >= 85) d += '<b>Disponibilidad aceptable (' + disp.toFixed(2) + '%)</b> — hay oportunidad de reducir paros. ';
+  else d += '<span class="danger-text">Disponibilidad crítica (' + disp.toFixed(2) + '%)</span> — priorizar plan de mantenimiento preventivo. ';
+  if (oee >= 85) d += '<span class="highlight">OEE clase mundial (' + oee.toFixed(2) + '%)</span> — rendimiento sobresaliente. ';
+  else if (oee >= 60) d += '<b>OEE mejorable (' + oee.toFixed(2) + '%)</b> — analizar pérdidas de velocidad y calidad. ';
+  else d += '<span class="danger-text">OEE crítico (' + oee.toFixed(2) + '%)</span> — pérdidas significativas en disponibilidad, velocidad o calidad. ';
+  if (costo > 0) d += 'Costo directo de paros en el período: <span class="danger-text">$' + Math.round(costo).toLocaleString() + ' USD</span>.';
+
+  document.getElementById('diag').innerHTML = d;
+};
+
+document.getElementById('btn-conf').onclick = calcConf;
+
+document.getElementById('btn-copy').onclick = function() {
+  var txt = [
+    'RESULTADOS — MaintCalc',
+    '------------------------',
+    'MTBF: ' + document.getElementById('v-mtbf').textContent,
+    'MTTR: ' + document.getElementById('v-mttr').textContent,
+    'Disponibilidad: ' + document.getElementById('v-disp').textContent,
+    'Disponibilidad (MTBF): ' + document.getElementById('v-disp2').textContent,
+    'OEE: ' + document.getElementById('v-oee').textContent,
+    'Costo de paros: ' + document.getElementById('v-costo').textContent,
+  ].join('\n');
+  navigator.clipboard.writeText(txt).then(function() {
+    var btn = document.getElementById('btn-copy');
+    btn.textContent = '¡Copiado!';
+    setTimeout(function() { btn.textContent = 'Copiar resultados'; }, 2000);
+  });
+};
+</script>
+</body>
+</html>
