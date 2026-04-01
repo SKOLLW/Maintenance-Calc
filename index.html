@@ -334,14 +334,13 @@ function labelFor(cls, lg, lw, lb) {
 }
 
 function setKpi(id, value, unit, cls, statusGood, statusWarn, statusBad) {
-  document.getElementById('v-'+id).textContent = value;
-  document.getElementById('v-'+id).className = 'kpi-value ' + cls;
-  document.getElementById('dot-'+id).className = 'status-dot ' + cls;
-  document.getElementById('lbl-'+id).textContent = labelFor(cls, statusGood, statusWarn, statusBad);
-  var card = document.getElementById('card-'+id);
+  document.getElementById('v-' + id).textContent = value;
+  document.getElementById('v-' + id).className = 'kpi-value ' + cls;
+  document.getElementById('dot-' + id).className = 'status-dot ' + cls;
+  document.getElementById('lbl-' + id).textContent = labelFor(cls, statusGood, statusWarn, statusBad);
+  var card = document.getElementById('card-' + id);
   card.className = 'kpi-card ' + (cls === 'good' ? 'active' : cls === 'warn' ? 'warn-card' : 'danger-card');
 }
-
 
 function buildInterpretation(mtbf, mttr, disp, oee, costo) {
   var interpretacionMTBF = '';
@@ -424,7 +423,7 @@ function buildInterpretation(mtbf, mttr, disp, oee, costo) {
     <p><b>Confiabilidad t3:</b> ${interpretarConfiabilidad(t3, r3)}</p>
   `;
 }
-  
+
 function buildScore(mtbf, mttr, disp, oee) {
   var mtbfScore = 0;
   var mttrScore = 0;
@@ -475,6 +474,19 @@ function buildScore(mtbf, mttr, disp, oee) {
     lectura = 'El activo presenta riesgo operativo y requiere acciones prioritarias.';
   }
 
+  document.getElementById('v-score').textContent = score.toFixed(0);
+  document.getElementById('v-score').className = 'kpi-value ' + clase;
+  document.getElementById('dot-score').className = 'status-dot ' + clase;
+  document.getElementById('lbl-score').textContent = estado;
+
+  var card = document.getElementById('card-score');
+  card.className = 'kpi-card ' + (clase === 'good' ? 'active' : clase === 'warn' ? 'warn-card' : 'danger-card');
+
+  document.getElementById('score-desc').innerHTML = `
+    <b>Diagnóstico:</b> ${lectura}
+  `;
+}
+
 function buildRecommendations(mtbf, mttr, disp, oee, costo) {
   var recos = [];
 
@@ -509,22 +521,7 @@ function buildRecommendations(mtbf, mttr, disp, oee, costo) {
 
   return html;
 }
-  
-  // llenar tarjeta
-  document.getElementById('v-score').textContent = score.toFixed(0);
-  document.getElementById('v-score').className = 'kpi-value ' + clase;
-  document.getElementById('dot-score').className = 'status-dot ' + clase;
-  document.getElementById('lbl-score').textContent = estado;
 
-  var card = document.getElementById('card-score');
-  card.className = 'kpi-card ' + (clase === 'good' ? 'active' : clase === 'warn' ? 'warn-card' : 'danger-card');
-
-  // descripción
-  document.getElementById('score-desc').innerHTML = `
-    <b>Diagnostico:</b> ${lectura}
-  `;
-}
-  
 function calcConf() {
   if (_mtbf <= 0) return;
   var ts = [g('t1'), g('t2'), g('t3')];
@@ -546,25 +543,22 @@ document.getElementById('btn-calc').onclick = function() {
   var ch = g('i-ch');
   var pd = g('i-pd');
 
-  _mtbf       = ht / nf;
-  _mttr       = hr / nf;
-  var disp    = ((ht - hp) / ht) * 100;
-  var disp2   = (_mtbf / (_mtbf + _mttr)) * 100;
-  var oee     = (disp / 100) * (vr / vi) * (1 - pd / 100) * 100;
-  var costo   = hp * ch;
+  _mtbf = ht / nf;
+  _mttr = hr / nf;
+  var disp = ((ht - hp) / ht) * 100;
+  var disp2 = (_mtbf / (_mtbf + _mttr)) * 100;
+  var oee = (disp / 100) * (vr / vi) * (1 - pd / 100) * 100;
+  var costo = hp * ch;
 
-  setKpi('mtbf',  _mtbf.toFixed(1) + ' h',  'h', classify(_mtbf, 200, 80),  'Excelente', 'Aceptable', 'Crítico');
-  setKpi('mttr',  _mttr.toFixed(1) + ' h',  'h', classify(10 - _mttr, 5, 2), 'Rápido', 'Mejorable', 'Lento');
-  setKpi('disp',  disp.toFixed(2) + '%',    '%', classify(disp, 90, 75),    'Excelente', 'Aceptable', 'Crítico');
-  setKpi('disp2', disp2.toFixed(2) + '%',   '%', classify(disp2, 90, 75),   'Excelente', 'Aceptable', 'Crítico');
-  setKpi('oee',   oee.toFixed(2) + '%',     '%', classify(oee, 85, 60),     'Clase mundial', 'Mejorable', 'Crítico');
+  setKpi('mtbf', _mtbf.toFixed(1) + ' h', 'h', classify(_mtbf, 200, 80), 'Excelente', 'Aceptable', 'Crítico');
+  setKpi('mttr', _mttr.toFixed(1) + ' h', 'h', classify(10 - _mttr, 5, 2), 'Rápido', 'Mejorable', 'Lento');
+  setKpi('disp', disp.toFixed(2) + '%', '%', classify(disp, 90, 75), 'Excelente', 'Aceptable', 'Crítico');
+  setKpi('disp2', disp2.toFixed(2) + '%', '%', classify(disp2, 90, 75), 'Excelente', 'Aceptable', 'Crítico');
+  setKpi('oee', oee.toFixed(2) + '%', '%', classify(oee, 85, 60), 'Clase mundial', 'Mejorable', 'Crítico');
 
   document.getElementById('v-costo').textContent = '$' + Math.round(costo).toLocaleString();
   document.getElementById('card-costo').className = 'kpi-card danger-card';
-  buildScore(_mtbf, _mttr, disp, oee);
-  document.getElementById('reco-box').innerHTML = buildRecommendations(_mtbf, _mttr, disp, oee, costo);
-};
-  
+
   calcConf();
 
   var d = '';
@@ -581,8 +575,9 @@ document.getElementById('btn-calc').onclick = function() {
 
   document.getElementById('diag').innerHTML = d;
   document.getElementById('interp').innerHTML = buildInterpretation(_mtbf, _mttr, disp, oee, costo);
+  buildScore(_mtbf, _mttr, disp, oee);
+  document.getElementById('reco-box').innerHTML = buildRecommendations(_mtbf, _mttr, disp, oee, costo);
 };
-
 
 document.getElementById('btn-copy').onclick = function() {
   var txt = [
@@ -594,7 +589,10 @@ document.getElementById('btn-copy').onclick = function() {
     'Disponibilidad (MTBF): ' + document.getElementById('v-disp2').textContent,
     'OEE: ' + document.getElementById('v-oee').textContent,
     'Costo de paros: ' + document.getElementById('v-costo').textContent,
+    'Score global: ' + document.getElementById('v-score').textContent,
+    'Estado general: ' + document.getElementById('lbl-score').textContent
   ].join('\n');
+
   navigator.clipboard.writeText(txt).then(function() {
     var btn = document.getElementById('btn-copy');
     btn.textContent = '¡Copiado!';
